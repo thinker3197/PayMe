@@ -75,7 +75,11 @@
     var $cardWrapper = document.getElementById('js-card-wrapper');
     var markup = '';
 
-    console.log(data.stores.length);
+    if (!data.stores.length) {
+      $cardWrapper.innerHTML = '<p class="card-error">Whoops! No matching shops found 😒</p>';
+
+      return;
+    }
 
     for (var i = 0; i < data.stores.length - 1; ++i) {
       markup += `<div class="card-box">
