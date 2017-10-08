@@ -132,6 +132,26 @@
     });
   }
 
+  function getPaymentFilter(payType) {
+    return new Promise(function (resolve, reject) {
+      const url = BASE_URL + '/stores?payment_type=' + payType;
+      const xhr = new XMLHttpRequest();
+
+      xhr.open('GET', url);
+      xhr.onload = function () {
+        if (this.status >= 200 && this.status < 300) {
+          resolve(xhr.response);
+        } else {
+          reject();
+        }
+      };
+      xhr.onerror = function () {
+        reject();
+      };
+      xhr.send();
+    });
+  }
+
   function activateFooterButton() {
     var searchBtn = document.getElementById('js-icon-add');
 
@@ -152,6 +172,13 @@
             console.error('Whoops! An error occured');
           });
         }
+        else if(!!paymentFilters.length && !poiFilters.length) {
+          getPaymentFilter(paymentFilters.join(',')).then(function(response) {
+            console.log(response);
+          }, function() {
+            console.error('Whoops! An error occured');
+          });
+        }
       } else {
         setState('app-view');
       }
@@ -159,7 +186,6 @@
   }
 
   function setMarkers(map) {
-    console.log(pois);
     for (var i = 0; i < pois.length; i++) {
       var poi = pois[i];
 
