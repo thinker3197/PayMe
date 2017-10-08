@@ -75,6 +75,8 @@
     var $cardWrapper = document.getElementById('js-card-wrapper');
     var markup = '';
 
+    console.log(data.stores.length);
+
     for (var i = 0; i < data.stores.length - 1; ++i) {
       markup += `<div class="card-box">
                   <div class="card-text pos--relative">
@@ -152,6 +154,26 @@
     });
   }
 
+  function getDualFilter(payType, storeType) {
+    return new Promise(function (resolve, reject) {
+      const url = BASE_URL + '/stores?payment_type=' + payType + '&store_type=' + storeType;
+      const xhr = new XMLHttpRequest();
+
+      xhr.open('GET', url);
+      xhr.onload = function () {
+        if (this.status >= 200 && this.status < 300) {
+          resolve(xhr.response);
+        } else {
+          reject();
+        }
+      };
+      xhr.onerror = function () {
+        reject();
+      };
+      xhr.send();
+    });
+  }
+
   function activateFooterButton() {
     var searchBtn = document.getElementById('js-icon-add');
 
@@ -161,7 +183,7 @@
           getAllPOI().then(function (response) {
             response = JSON.parse(response);
 
-            pois = response.stores.map(e => { 
+            pois = response.stores.map(e => {
               return [e.name, e.lat, e.long]
             });
 
@@ -171,11 +193,33 @@
           }, function () {
             console.error('Whoops! An error occured');
           });
+        } else if (!!paymentFilters.length && !poiFilters.length) {
+          getPaymentFilter(paymentFilters.join(',')).then(function (response) {
+            response = JSON.parse(response);
+
+            pois = response.stores.map(e => {
+              return [e.name, e.lat, e.long]
+            });
+
+            setState('map-view');
+            
+            displayResults(response);
+          }, function () {
+            console.error('Whoops! An error occured');
+          });
         }
-        else if(!!paymentFilters.length && !poiFilters.length) {
-          getPaymentFilter(paymentFilters.join(',')).then(function(response) {
-            console.log(response);
-          }, function() {
+        else if(!!paymentFilters.length && !!poiFilters.length) {
+          getDualFilter(paymentFilters.join(','), poiFilters.join(',')).then(function (response) {
+            response = JSON.parse(response);
+
+            pois = response.stores.map(e => {
+              return [e.name, e.lat, e.long]
+            });
+
+            setState('map-view');
+            
+            displayResults(response);
+          }, function () {
             console.error('Whoops! An error occured');
           });
         }
